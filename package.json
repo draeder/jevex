@@ -2,6 +2,7 @@
   "name": "jevex",
   "version": "0.1.0",
   "private": true,
+  "license": "MIT",
   "type": "module",
   "description": "Semantic pattern matching with a RegExp-shaped API, backed by Jev.",
   "main": "src/index.js",

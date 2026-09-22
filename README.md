@@ -13,9 +13,12 @@ import { jevex } from "./src/index.js";
 const quote = jevex("(?<who>{a person's name}) (?<verb>{a past-tense verb})");
 
 await quote.exec("Priya Raghunathan opened the release meeting.");
-// { 0: 'Priya Raghunathan opened', index: 0, end: 24, score: 0.94,
+// { 0: 'Priya Raghunathan opened', index: 0, end: 24, score: 0.96,
 //   groups: { who: 'Priya Raghunathan', verb: 'opened' } }
 ```
+
+`jevex` is both the default and a named export. There is also a tagged-template
+form, `` jx`...` ``, for patterns worth spreading over several lines.
 
 ## The pattern language
 
@@ -25,13 +28,14 @@ await quote.exec("Priya Raghunathan opened the release meeting.");
 | `!{a proper noun}` | one token Jev judges it is not | `[^A-Z]` |
 | `"thank you"` | a literal token sequence | `thank you` |
 | `argued` | an unquoted literal token | `argued` |
-| `/\d{4}/` | a real regex over one token span | — |
+| `/\d{4}/` | a real regex, matched against a span of 1–`maxSpan` tokens | — |
 | `.` | any one token | `.` |
 | `^` `$` | start and end of the chunk | `^` `$` |
 | `?` `*` `+` `{n}` `{n,m}` | quantifiers, greedy | same |
 | `??` `*?` `+?` | lazy quantifiers | same |
 | `\|` | alternation | same |
-| `( )` `(?: )` `(?<n> )` | group, non-capturing, named capture | same |
+| `(?<n> )` | named capture | same |
+| `( )` `(?: )` | grouping only — see below, neither captures | `(?: )` |
 | `(?= )` `(?! )` | lookahead | same |
 | `\` | escape a metacharacter | same |
 
@@ -95,7 +99,8 @@ atom probability along the match, so one bad atom cannot hide behind good ones.
 | `prefilterThreshold` | `0.35` | deliberately low: this pass should only skip the clear misses |
 | `caseSensitive` | `false` | for literals |
 | `segment` / `maxChars` | `"auto"` / `400` | how the text is cut into chunks |
-| `questionBatch` | `120` | questions per request |
+| `questionBatch` | `120` | table questions per request |
+| `scanBatch` | `60` | chunks per prefilter request |
 | `concurrency` | `6` | requests in flight |
 | `client` / `model` | SDK defaults | bring your own `TypeSafeClient` |
 
@@ -128,6 +133,15 @@ a long document. Run `plan()` before a big job.
   not pick the highest-probability span.
 - **Empty matches are skipped.** A pattern that can match nothing (`{a noun}*`)
   advances rather than looping.
+- **Only named captures exist.** `( )` groups for precedence but captures
+  nothing, so there is no `m[1]`, `m[2]`. Name the groups you want back:
+  `(?<who>...)`. This is a gap, not a design decision.
+- **It is not a drop-in RegExp.** The methods are async, so `str.replace(re, …)`
+  and friends cannot take a jevex pattern — the String methods dispatch through
+  synchronous `Symbol.replace`/`Symbol.split` protocols. Call
+  `await pattern.replace(str, …)` instead. Regex syntax does not carry over
+  either: there is no `\d`, `\w`, `\b` or `[a-z]`. Where a regex already works,
+  keep the regex; it is exact, free and instant.
 
 ## Running it
 
@@ -145,3 +159,7 @@ npm run demo
 
 `npm test` runs the parser, tokenizer and matcher against a fake judge and makes
 no API calls. `npm run demo` needs `TYPESAFE_API_KEY` in `.env` and does.
+
+## License
+
+MIT.

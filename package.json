@@ -1,0 +1,21 @@
+{
+  "name": "jevex",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Semantic pattern matching with a RegExp-shaped API, backed by Jev.",
+  "main": "src/index.js",
+  "exports": {
+    ".": "./src/index.js"
+  },
+  "files": [
+    "src"
+  ],
+  "scripts": {
+    "test": "node --test \"test/*.test.js\"",
+    "demo": "node examples/demo.js"
+  },
+  "dependencies": {
+    "@typesafe-ai/sdk": "^0.6.0"
+  }
+}
